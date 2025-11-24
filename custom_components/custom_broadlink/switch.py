@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from enum import IntEnum, auto
+from enum import StrEnum
 from typing import Any
 
 import voluptuous as vol
@@ -69,11 +69,11 @@ PLATFORM_SCHEMA = vol.All(
 )
 
 
-class SlotType(IntEnum):
+class SlotType(StrEnum):
     """The type of slot."""
 
-    SOCKET = auto()
-    CHILDLOCK = auto()
+    SOCKET = "pwr"
+    CHILDLOCK = "childlock"
 
 
 async def async_setup_platform(
@@ -321,7 +321,7 @@ class BroadlinkEHCR31Slot(BroadlinkSwitch):
         """Initialize the switch."""
         super().__init__(device, 1, 0)
         self._slot = slot
-        self._slot_action = "pwr" if slot_type == SlotType.SOCKET else "childlock"
+        self._slot_action = slot_type.value
         self._attr_is_on = self._coordinator.data[f"{self._slot_action}{slot}"]
 
         self._attr_name = f"{'S' if slot_type == SlotType.SOCKET else 'CL'}{slot}"
