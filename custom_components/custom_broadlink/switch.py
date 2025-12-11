@@ -321,8 +321,8 @@ class BroadlinkEHCR31Slot(BroadlinkSwitch):
         """Initialize the switch."""
         super().__init__(device, 1, 0)
         self._slot = slot
-        self._slot_action = slot_type.value
-        self._attr_is_on = self._coordinator.data[f"{self._slot_action}{slot}"]
+        self._slot_key = f"{slot_type.value}{slot}"
+        self._attr_is_on = self._coordinator.data[self._slot_key]
 
         self._attr_name = f"{'S' if slot_type == SlotType.SOCKET else 'CL'}{slot}"
         self._attr_device_class = (
@@ -330,18 +330,16 @@ class BroadlinkEHCR31Slot(BroadlinkSwitch):
             if slot_type == SlotType.SOCKET
             else SwitchDeviceClass.SWITCH
         )
-        self._attr_unique_id = (
-            f"{device.unique_id}-{'s' if slot_type == SlotType.SOCKET else 'cl'}{slot}"
-        )
+        self._attr_unique_id = f"{device.unique_id}-{self._attr_name.lower()}"
 
     def _update_state(self, data):
         """Update the state of the entity."""
-        self._attr_is_on = data[f"{self._slot_action}{self._slot}"]
+        self._attr_is_on = data[self._slot_key]
 
     async def _async_send_packet(self, packet):
         """Send a packet to the device."""
         device = self._device
-        state = {f"{self._slot_action}{self._slot}": packet}
+        state = {self._slot_key: packet}
 
         try:
             await device.async_request(device.api.set_state, **state)
